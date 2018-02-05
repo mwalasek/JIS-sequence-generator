@@ -202,7 +202,7 @@ public class CustomGeneratorScreen2 extends JFrame {
                     fluctuation[j] = Integer.parseInt(flucFields[j].getText());
                     deviation[j] = Integer.parseInt(devFields[j].getText());
                 }
-                new TableGenerator().generateDataTables(Integer.parseInt(vField.getText()),
+                new TableGenerator().generateDataTables(
                         numProds, base_calloff_quantities, growth, fluctuation, deviation,
                         Integer.parseInt(granField.getText()));
                 System.exit(0);

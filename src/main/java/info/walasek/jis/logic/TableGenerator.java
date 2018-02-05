@@ -6,6 +6,7 @@ import jxl.write.Number;
 import jxl.write.biff.RowsExceededException;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Random;
@@ -16,7 +17,7 @@ public class TableGenerator {
     public final static String OUTPUT_FILE_NAME = "JISModelData";
     public final static String FILE_ENDING = ".xls";
 
-    public final static int DAY_COUNT = 365;
+    public final static int DAY_COUNT = 200;
 
     //Define date format etc.
     DateFormat previewDateFormat = new DateFormat("dd.mm.yyyy");
@@ -33,7 +34,7 @@ public class TableGenerator {
 
     int sequenceTableIndex = 1, orderIndex = 1, assemblySequenceTableIndex = 1;
 
-    public void generateDataTables(int calloffSize, int numVariants, int[] base_calloff_quantities, int[] linearGrowth, int[] fluctuation, int[] deviation, int maxTypeAggregateSize) {
+    public void generateDataTables(int numVariants, int[] base_calloff_quantities, int[] linearGrowth, int[] fluctuation, int[] deviation, int maxTypeAggregateSize) {
         try {
             WritableWorkbook workbook = Workbook.createWorkbook(new File(OUTPUT_FILE_NAME
                     + "_var" + base_calloff_quantities.length + FILE_ENDING));
@@ -132,6 +133,7 @@ public class TableGenerator {
         			/*
         			 * Generate exact call-off sequence:
         			 */
+        			    int calloffSize = Arrays.stream(base_calloff_quantities).sum();
                         generateSequenceCalledOff(workbook, deliveryCalendar, devQuantities, calloffSize, maxTypeAggregateSize);
 
                         previewQuantitiesDaily = arrayAdd(previewQuantitiesDaily, previewQuantities);

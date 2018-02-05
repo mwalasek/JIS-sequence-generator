@@ -47,20 +47,20 @@ public class QuickGeneratorScreen extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                int numProds = Integer.parseInt(textField.getText());
+                int calloffSize = Integer.parseInt(textField.getText());
                 for (int v = 1; v <= MAX_VARIANTS; v++) {
 
                     int[] base_calloff_quantities = new int[v];
                     for (int i = 0; i < v; i++)
                         base_calloff_quantities[i] = 0;
                     int j = 0;
-                    for (int i = 1; i <= TOTAL_PRODUCTS; i++) {
+                    for (int i = 1; i <= calloffSize; i++) {
                         if (j >= base_calloff_quantities.length)
                             j = 0;
                         base_calloff_quantities[j]++;
                         j++;
                     }
-                    new TableGenerator().generateDataTables(numProds, v, base_calloff_quantities,
+                    new TableGenerator().generateDataTables(v, base_calloff_quantities,
                             new int[v], new int[v], new int[v], 5);
                 }
                 System.exit(0);
