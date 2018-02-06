@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -28,17 +29,15 @@ public class TableGeneratorTest {
     @Test
     public void generateDataTables() throws Exception {
 
-        int[] baseCalloffQuantities = new int[] {34, 33, 33};
+        List<ProductConfiguration> products = new ArrayList<>();
+        products.add(new ProductConfiguration(0, 44, 0, 0, 0));
+        products.add(new ProductConfiguration(1, 35, 0, 0, 0));
+        products.add(new ProductConfiguration(2, 21, 0, 0, 0));
+        products.add(new ProductConfiguration(3, 0, 0, 0, 0));
 
-        new TableGenerator().generateDataTables(
-                3,
-                baseCalloffQuantities,     // call-off size of 100
-                new int[3],
-                new int[3],
-                new int[3],
-                0);
+        new TableGenerator().generateDataTables(products, 0);
 
-        File file = new File("JISModelData_var3.xls");
+        File file = new File("JISModelData_var4.xls");
         assertTrue(file.exists());
 
         Workbook workbook = Workbook.getWorkbook(file);
@@ -52,14 +51,12 @@ public class TableGeneratorTest {
         // For every call-off and every product assert that the generated total quantity matches the input value:
         entries.stream()
                 .collect(Collectors.groupingBy(SequenceTableEntry::getCalloffId))
-                .forEach((calloffId, entriesForCalloff) -> {
-                    entriesForCalloff.stream()
-                            .collect(Collectors.groupingBy(SequenceTableEntry::getProductType,
-                                    Collectors.summingInt(SequenceTableEntry::getProductUnits)))
-                            .forEach((productType, unitsInCalloff) ->
-                                assertThat("Product quantity mismatch with input value",
-                                        unitsInCalloff, is(baseCalloffQuantities[productType])));
-                });
+                .forEach((calloffId, entriesForCalloff) -> entriesForCalloff.stream()
+                        .collect(Collectors.groupingBy(SequenceTableEntry::getProductType,
+                                Collectors.summingInt(SequenceTableEntry::getProductUnits)))
+                        .forEach((productType, unitsInCalloff) ->
+                            assertThat("Product quantity mismatch with input value",
+                                    unitsInCalloff, is(products.get(productType).getBaseQuantity()))));
 
         workbook.close();
         file.delete();

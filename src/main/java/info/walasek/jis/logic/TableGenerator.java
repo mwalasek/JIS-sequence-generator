@@ -6,10 +6,7 @@ import jxl.write.Number;
 import jxl.write.biff.RowsExceededException;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Random;
+import java.util.*;
 
 
 public class TableGenerator {
@@ -34,10 +31,10 @@ public class TableGenerator {
 
     int sequenceTableIndex = 1, orderIndex = 1, assemblySequenceTableIndex = 1;
 
-    public void generateDataTables(int numVariants, int[] base_calloff_quantities, int[] linearGrowth, int[] fluctuation, int[] deviation, int maxTypeAggregateSize) {
+    public void generateDataTables(List<ProductConfiguration> products, int maxTypeAggregateSize) {
         try {
             WritableWorkbook workbook = Workbook.createWorkbook(new File(OUTPUT_FILE_NAME
-                    + "_var" + base_calloff_quantities.length + FILE_ENDING));
+                    + "_var" + products.size() + FILE_ENDING));
             WritableSheet previewTable = workbook.createSheet("Calloff Preview", 0);
             WritableSheet eventTable = workbook.createSheet("Calloff Event Table", 1);
 
@@ -45,7 +42,7 @@ public class TableGenerator {
             Label DayLabel = new Label(0, 0, "Day");
             previewTable.addCell(DayLabel);
 
-            for (int i = 0; i < numVariants; i++) {
+            for (int i = 0; i < products.size(); i++) {
                 Label DemandTypeLabel = new Label(i + 1, 0, "Type " + i);
                 previewTable.addCell(DemandTypeLabel);
             }
@@ -95,9 +92,9 @@ public class TableGenerator {
                 DateTime previewDTCell = new DateTime(0, prevTableIndex, deliveryCalendar.getTime(), wPreviewDateFormat);
                 previewTable.addCell(previewDTCell);
 
-                int[] previewQuantitiesDaily = new int[numVariants];
+                int[] previewQuantitiesDaily = new int[products.size()];
                 for (int i = 0; i < previewQuantitiesDaily.length; i++) previewQuantitiesDaily[i] = 0;
-    			
+
         	/*
         	 * Generate calloff events:
         	 */
@@ -106,10 +103,17 @@ public class TableGenerator {
                     //Again, consider only working days:
                     if (deliveryCalendar.getTime().getDay() <= 5 && deliveryCalendar.getTime().getDay() >= 1) {
 
-        			/*
-        			 * Calculate the preview quantities
-        			 */
-                        int[] previewQuantities = linearDemandCurve(base_calloff_quantities, linearGrowth, dayCount, DAY_COUNT);
+                        /*
+                         * Calculate the preview quantities
+                         */
+                        final int day = dayCount;
+                        int[] previewQuantities = products.stream()
+                                .mapToInt(p -> p.generateDemandForDay(day, DAY_COUNT))
+                                .toArray();
+
+                        int[] fluctuation = products.stream()
+                                .mapToInt(ProductConfiguration::getFluctuation)
+                                .toArray();
                         previewQuantities = arrayCopyWithDeviation(previewQuantities, fluctuation);
 
                         //Number the calloffs consecutively:
@@ -128,12 +132,12 @@ public class TableGenerator {
         			/*
         			 * Account for the deviation from the calloff preview:
         			 */
-                        int[] devQuantities = arrayCopyWithDeviation(previewQuantities, deviation);
+                        int[] devQuantities = arrayCopyWithDeviation(previewQuantities, products.stream().mapToInt(ProductConfiguration::getDeviation).toArray());
         			
         			/*
         			 * Generate exact call-off sequence:
         			 */
-        			    int calloffSize = Arrays.stream(base_calloff_quantities).sum();
+                        int calloffSize = products.stream().mapToInt(ProductConfiguration::getDeviation).sum();
                         generateSequenceCalledOff(workbook, deliveryCalendar, devQuantities, calloffSize, maxTypeAggregateSize);
 
                         previewQuantitiesDaily = arrayAdd(previewQuantitiesDaily, previewQuantities);
@@ -287,14 +291,6 @@ public class TableGenerator {
 
             sequenceTableIndex++;
         }
-    }
-
-    public static int[] linearDemandCurve(int[] baseQuantities, int[] growth, int currentDay, int maxDayCount) {
-        int[] result = new int[baseQuantities.length];
-        for (int i = 0; i < baseQuantities.length; i++) {
-            result[i] = (baseQuantities[i] + currentDay * (growth[i] * baseQuantities[i]) / (100 * maxDayCount));
-        }
-        return result;
     }
 
     public static boolean contains(final int[] array, final int elem) {

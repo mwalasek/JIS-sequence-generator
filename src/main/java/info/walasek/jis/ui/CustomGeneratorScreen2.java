@@ -1,11 +1,15 @@
 package info.walasek.jis.ui;
 
+import info.walasek.jis.logic.ProductConfiguration;
 import info.walasek.jis.logic.TableGenerator;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 public class CustomGeneratorScreen2 extends JFrame {
@@ -192,21 +196,25 @@ public class CustomGeneratorScreen2 extends JFrame {
 
         button = new JButton("OK");
         button.setBounds(40 + i * 65, 532, 60, 25);
-        button.addActionListener(new ActionListener() {
+        button.addActionListener(e -> {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                for (int j = 0; j < numProds; j++) {
-                    base_calloff_quantities[j] = Integer.parseInt(qtyFields[j].getText());
-                    growth[j] = Integer.parseInt(growthFields[j].getText());
-                    fluctuation[j] = Integer.parseInt(flucFields[j].getText());
-                    deviation[j] = Integer.parseInt(devFields[j].getText());
-                }
-                new TableGenerator().generateDataTables(
-                        numProds, base_calloff_quantities, growth, fluctuation, deviation,
-                        Integer.parseInt(granField.getText()));
-                System.exit(0);
+            for (int j = 0; j < numProds; j++) {
+                base_calloff_quantities[j] = Integer.parseInt(qtyFields[j].getText());
+                growth[j] = Integer.parseInt(growthFields[j].getText());
+                fluctuation[j] = Integer.parseInt(flucFields[j].getText());
+                deviation[j] = Integer.parseInt(devFields[j].getText());
             }
+            List<ProductConfiguration> products = IntStream.range(0, numProds).boxed()
+                    .map(j -> new ProductConfiguration(j,
+                            Integer.parseInt(qtyFields[j].getText()),
+                            Integer.parseInt(growthFields[j].getText()),
+                            Integer.parseInt(flucFields[j].getText()),
+                            Integer.parseInt(devFields[j].getText())
+                    )).collect(Collectors.toList());
+
+            new TableGenerator().generateDataTables(products, 0);
+
+            System.exit(0);
         });
         add(button);
     }

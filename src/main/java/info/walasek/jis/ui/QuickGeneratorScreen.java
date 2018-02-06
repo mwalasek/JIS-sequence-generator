@@ -1,17 +1,21 @@
 package info.walasek.jis.ui;
 
+import info.walasek.jis.logic.ProductConfiguration;
 import info.walasek.jis.logic.TableGenerator;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 public class QuickGeneratorScreen extends JFrame {
 
     public final static int MAX_VARIANTS = 30;
-    public final static int TOTAL_PRODUCTS = 50;
 
     public QuickGeneratorScreen() {
         initUI();
@@ -43,28 +47,29 @@ public class QuickGeneratorScreen extends JFrame {
 
         JButton button = new JButton("GO!");
         button.setBounds(85, 45, 60, 25);
-        button.addActionListener(new ActionListener() {
+        button.addActionListener(e -> {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int calloffSize = Integer.parseInt(textField.getText());
-                for (int v = 1; v <= MAX_VARIANTS; v++) {
+            int calloffSize = Integer.parseInt(textField.getText());
+            for (int v = 1; v <= MAX_VARIANTS; v++) {
 
-                    int[] base_calloff_quantities = new int[v];
-                    for (int i = 0; i < v; i++)
-                        base_calloff_quantities[i] = 0;
-                    int j = 0;
-                    for (int i = 1; i <= calloffSize; i++) {
-                        if (j >= base_calloff_quantities.length)
-                            j = 0;
-                        base_calloff_quantities[j]++;
-                        j++;
-                    }
-                    new TableGenerator().generateDataTables(v, base_calloff_quantities,
-                            new int[v], new int[v], new int[v], 5);
+                int[] base_calloff_quantities = new int[v];
+                for (int i = 0; i < v; i++)
+                    base_calloff_quantities[i] = 0;
+                int j = 0;
+                for (int i = 1; i <= calloffSize; i++) {
+                    if (j >= base_calloff_quantities.length)
+                        j = 0;
+                    base_calloff_quantities[j]++;
+                    j++;
                 }
-                System.exit(0);
+
+                List<ProductConfiguration> products = IntStream.range(0, v).boxed()
+                        .map(productType -> new ProductConfiguration(productType, base_calloff_quantities[productType], 0, 0, 0
+                        )).collect(Collectors.toList());
+
+                new TableGenerator().generateDataTables(products, 5);
             }
+            System.exit(0);
         });
         add(button);
     }
