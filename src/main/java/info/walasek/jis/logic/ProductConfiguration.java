@@ -5,7 +5,7 @@ package info.walasek.jis.logic;
  */
 public class ProductConfiguration {
 
-    private int productType, baseQuantity, linearGrowth, fluctuation, deviation;
+    private final int productType, baseQuantity, linearGrowth, fluctuation, deviation;
 
     public ProductConfiguration(int productType, int baseQuantity, int linearGrowth, int fluctuation, int deviation) {
         this.productType = productType;
@@ -30,39 +30,19 @@ public class ProductConfiguration {
         return productType;
     }
 
-    public void setProductType(int productType) {
-        this.productType = productType;
-    }
-
     public int getBaseQuantity() {
         return baseQuantity;
-    }
-
-    public void setBaseQuantity(int baseQuantity) {
-        this.baseQuantity = baseQuantity;
     }
 
     public int getLinearGrowth() {
         return linearGrowth;
     }
 
-    public void setLinearGrowth(int linearGrowth) {
-        this.linearGrowth = linearGrowth;
-    }
-
     public int getFluctuation() {
         return fluctuation;
     }
 
-    public void setFluctuation(int fluctuation) {
-        this.fluctuation = fluctuation;
-    }
-
     public int getDeviation() {
         return deviation;
-    }
-
-    public void setDeviation(int deviation) {
-        this.deviation = deviation;
     }
 }

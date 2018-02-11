@@ -1,5 +1,6 @@
 package info.walasek.jis.ui;
 
+import info.walasek.jis.logic.DemandConfiguration;
 import info.walasek.jis.logic.ProductConfiguration;
 import info.walasek.jis.logic.TableGenerator;
 
@@ -67,7 +68,7 @@ public class QuickGeneratorScreen extends JFrame {
                         .map(productType -> new ProductConfiguration(productType, base_calloff_quantities[productType], 0, 0, 0
                         )).collect(Collectors.toList());
 
-                new TableGenerator().generateDataTables(products, 5);
+                new TableGenerator().generateDataTables(new DemandConfiguration(products, 5, 365));
             }
             System.exit(0);
         });

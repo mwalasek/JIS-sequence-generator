@@ -35,7 +35,7 @@ public class TableGeneratorTest {
         products.add(new ProductConfiguration(2, 21, 0, 0, 0));
         products.add(new ProductConfiguration(3, 0, 0, 0, 0));
 
-        new TableGenerator().generateDataTables(products, 0);
+        new TableGenerator().generateDataTables(new DemandConfiguration(products, 0, 200));
 
         File file = new File("JISModelData_var4.xls");
         assertTrue(file.exists());

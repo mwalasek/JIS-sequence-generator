@@ -14,8 +14,6 @@ public class TableGenerator {
     public final static String OUTPUT_FILE_NAME = "JISModelData";
     public final static String FILE_ENDING = ".xls";
 
-    public final static int DAY_COUNT = 200;
-
     //Define date format etc.
     DateFormat previewDateFormat = new DateFormat("dd.mm.yyyy");
     WritableCellFormat wPreviewDateFormat = new WritableCellFormat(previewDateFormat);
@@ -31,10 +29,10 @@ public class TableGenerator {
 
     int sequenceTableIndex = 1, orderIndex = 1, assemblySequenceTableIndex = 1;
 
-    public void generateDataTables(List<ProductConfiguration> products, int maxTypeAggregateSize) {
+    public void generateDataTables(DemandConfiguration demandConfig) {
         try {
             WritableWorkbook workbook = Workbook.createWorkbook(new File(OUTPUT_FILE_NAME
-                    + "_var" + products.size() + FILE_ENDING));
+                    + "_var" + demandConfig.getProducts().size() + FILE_ENDING));
             WritableSheet previewTable = workbook.createSheet("Calloff Preview", 0);
             WritableSheet eventTable = workbook.createSheet("Calloff Event Table", 1);
 
@@ -42,7 +40,7 @@ public class TableGenerator {
             Label DayLabel = new Label(0, 0, "Day");
             previewTable.addCell(DayLabel);
 
-            for (int i = 0; i < products.size(); i++) {
+            for (int i = 0; i < demandConfig.getProducts().size(); i++) {
                 Label DemandTypeLabel = new Label(i + 1, 0, "Type " + i);
                 previewTable.addCell(DemandTypeLabel);
             }
@@ -87,12 +85,12 @@ public class TableGenerator {
         	/*
              * Generate the preview table:
         	 */
-            while (dayCount < DAY_COUNT) {
+            while (dayCount < demandConfig.getDays()) {
 
                 DateTime previewDTCell = new DateTime(0, prevTableIndex, deliveryCalendar.getTime(), wPreviewDateFormat);
                 previewTable.addCell(previewDTCell);
 
-                int[] previewQuantitiesDaily = new int[products.size()];
+                int[] previewQuantitiesDaily = new int[demandConfig.getProducts().size()];
                 for (int i = 0; i < previewQuantitiesDaily.length; i++) previewQuantitiesDaily[i] = 0;
 
         	/*
@@ -107,11 +105,11 @@ public class TableGenerator {
                          * Calculate the preview quantities
                          */
                         final int day = dayCount;
-                        int[] previewQuantities = products.stream()
-                                .mapToInt(p -> p.generateDemandForDay(day, DAY_COUNT))
+                        int[] previewQuantities = demandConfig.getProducts().stream()
+                                .mapToInt(p -> p.generateDemandForDay(day, demandConfig.getDays()))
                                 .toArray();
 
-                        int[] fluctuation = products.stream()
+                        int[] fluctuation = demandConfig.getProducts().stream()
                                 .mapToInt(ProductConfiguration::getFluctuation)
                                 .toArray();
                         previewQuantities = arrayCopyWithDeviation(previewQuantities, fluctuation);
@@ -132,13 +130,13 @@ public class TableGenerator {
         			/*
         			 * Account for the deviation from the calloff preview:
         			 */
-                        int[] devQuantities = arrayCopyWithDeviation(previewQuantities, products.stream().mapToInt(ProductConfiguration::getDeviation).toArray());
+                        int[] devQuantities = arrayCopyWithDeviation(previewQuantities, demandConfig.getProducts().stream().mapToInt(ProductConfiguration::getDeviation).toArray());
         			
         			/*
         			 * Generate exact call-off sequence:
         			 */
-                        int calloffSize = products.stream().mapToInt(ProductConfiguration::getDeviation).sum();
-                        generateSequenceCalledOff(workbook, deliveryCalendar, devQuantities, calloffSize, maxTypeAggregateSize);
+                        int calloffSize = demandConfig.getProducts().stream().mapToInt(ProductConfiguration::getDeviation).sum();
+                        generateSequenceCalledOff(workbook, deliveryCalendar, devQuantities, calloffSize, demandConfig.getMaxTypeAggregateSize());
 
                         previewQuantitiesDaily = arrayAdd(previewQuantitiesDaily, previewQuantities);
 

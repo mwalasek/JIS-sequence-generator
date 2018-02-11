@@ -1,5 +1,6 @@
 package info.walasek.jis.ui;
 
+import info.walasek.jis.logic.DemandConfiguration;
 import info.walasek.jis.logic.ProductConfiguration;
 import info.walasek.jis.logic.TableGenerator;
 
@@ -212,7 +213,7 @@ public class CustomGeneratorScreen2 extends JFrame {
                             Integer.parseInt(devFields[j].getText())
                     )).collect(Collectors.toList());
 
-            new TableGenerator().generateDataTables(products, 0);
+            new TableGenerator().generateDataTables(new DemandConfiguration(products, 0, 365));
 
             System.exit(0);
         });
