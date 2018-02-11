@@ -6,6 +6,7 @@ import jxl.write.Number;
 import jxl.write.biff.RowsExceededException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 
@@ -13,68 +14,23 @@ public class TableGenerator {
 
     public final static String OUTPUT_FILE_NAME = "JISModelData";
     public final static String FILE_ENDING = ".xls";
+    public static final String ASSEMBLY_SEQUENCE_TABLE = "Assembly Sequence Table";
+    public static final String DELIVERY_SEQUENCE_TABLE = "Delivery Sequence Table";
+    public static final String CALLOFF_PREVIEW_TABLE = "Calloff Preview";
+    public static final String CALLOFF_EVENT_TABLE = "Calloff Event Table";
 
-    //Define date format etc.
     DateFormat previewDateFormat = new DateFormat("dd.mm.yyyy");
     WritableCellFormat wPreviewDateFormat = new WritableCellFormat(previewDateFormat);
     DateFormat detailedDateFormat = new DateFormat("dd.mm.yyyy hh:mm");
     WritableCellFormat wDetailedDateFormat = new WritableCellFormat(detailedDateFormat);
 
-    WritableSheet deliverySequenceTable;
-
-    /**
-     * TEST - pass the pre-generated assembly sequence table over to SIMIO via table data.
-     */
-    WritableSheet assemblySequenceTable;
-
     int sequenceTableIndex = 1, orderIndex = 1, assemblySequenceTableIndex = 1;
 
     public void generateDataTables(DemandConfiguration demandConfig) {
         try {
-            WritableWorkbook workbook = Workbook.createWorkbook(new File(OUTPUT_FILE_NAME
-                    + "_var" + demandConfig.getProducts().size() + FILE_ENDING));
-            WritableSheet previewTable = workbook.createSheet("Calloff Preview", 0);
-            WritableSheet eventTable = workbook.createSheet("Calloff Event Table", 1);
-
-            //Label preview table columns:
-            Label DayLabel = new Label(0, 0, "Day");
-            previewTable.addCell(DayLabel);
-
-            for (int i = 0; i < demandConfig.getProducts().size(); i++) {
-                Label DemandTypeLabel = new Label(i + 1, 0, "Type " + i);
-                previewTable.addCell(DemandTypeLabel);
-            }
-
-            //Label event table columns:
-            Label IDLabel = new Label(0, 0, "CalloffID");
-            eventTable.addCell(IDLabel);
-
-            Label DTLabel = new Label(1, 0, "DeliveryTime");
-            eventTable.addCell(DTLabel);
-
-            Label OTLabel = new Label(2, 0, "ReceiptTime");
-            eventTable.addCell(OTLabel);
-
-            deliverySequenceTable = workbook.createSheet("Delivery Sequence Table", 2);
-            assemblySequenceTable = workbook.createSheet("Assembly Sequence Table", 3);
-
-            //Label sequence table columns:
-            Label SequenceIDLabel = new Label(0, 0, "CalloffID");
-            deliverySequenceTable.addCell(SequenceIDLabel);
-            Label SequenceTypeLabel = new Label(1, 0, "Type");
-            deliverySequenceTable.addCell(SequenceTypeLabel);
-
-            Label SequenceQuantityLabel = new Label(2, 0, "Number");
-            deliverySequenceTable.addCell(SequenceQuantityLabel);
-
-            Label SequenceDTLabel = new Label(3, 0, "DeliveryTime");
-            deliverySequenceTable.addCell(SequenceDTLabel);
-
-            deliverySequenceTable.addCell(new Label(4, 0, "RowIndex"));
-
-            assemblySequenceTable.addCell(new Label(0, 0, "CalloffID"));
-            assemblySequenceTable.addCell(new Label(1, 0, "Type"));
-            assemblySequenceTable.addCell(new Label(2, 0, "Number"));
+            WritableWorkbook workbook = initializeWorkbook(demandConfig);
+            WritableSheet previewTable = workbook.getSheet(CALLOFF_PREVIEW_TABLE);
+            WritableSheet eventTable = workbook.getSheet(CALLOFF_EVENT_TABLE);
 
             Calendar deliveryCalendar = GregorianCalendar.getInstance();
             deliveryCalendar.set(2018, Calendar.JANUARY, 1, 8, 30, 0);
@@ -94,7 +50,7 @@ public class TableGenerator {
                 for (int i = 0; i < previewQuantitiesDaily.length; i++) previewQuantitiesDaily[i] = 0;
 
         	/*
-        	 * Generate calloff events:
+             * Generate calloff events:
         	 */
                 while (true) {
 
@@ -172,9 +128,60 @@ public class TableGenerator {
         }
     }
 
+    private WritableWorkbook initializeWorkbook(DemandConfiguration demandConfig) throws IOException, WriteException {
+
+        WritableWorkbook workbook = Workbook.createWorkbook(new File(OUTPUT_FILE_NAME
+                + "_var" + demandConfig.getProducts().size() + FILE_ENDING));
+        WritableSheet previewTable = workbook.createSheet(CALLOFF_PREVIEW_TABLE, 0);
+        WritableSheet eventTable = workbook.createSheet(CALLOFF_EVENT_TABLE, 1);
+        WritableSheet deliverySequenceTable = workbook.createSheet(DELIVERY_SEQUENCE_TABLE, 2);
+        WritableSheet assemblySequenceTable = workbook.createSheet(ASSEMBLY_SEQUENCE_TABLE, 3);
+
+        //Label preview table columns:
+        Label DayLabel = new Label(0, 0, "Day");
+        previewTable.addCell(DayLabel);
+
+        for (int i = 0; i < demandConfig.getProducts().size(); i++) {
+            Label DemandTypeLabel = new Label(i + 1, 0, "Type " + i);
+            previewTable.addCell(DemandTypeLabel);
+        }
+
+        //Label event table columns:
+        Label IDLabel = new Label(0, 0, "CalloffID");
+        eventTable.addCell(IDLabel);
+
+        Label DTLabel = new Label(1, 0, "DeliveryTime");
+        eventTable.addCell(DTLabel);
+
+        Label OTLabel = new Label(2, 0, "ReceiptTime");
+        eventTable.addCell(OTLabel);
+
+        //Label sequence table columns:
+        Label SequenceIDLabel = new Label(0, 0, "CalloffID");
+        deliverySequenceTable.addCell(SequenceIDLabel);
+        Label SequenceTypeLabel = new Label(1, 0, "Type");
+        deliverySequenceTable.addCell(SequenceTypeLabel);
+
+        Label SequenceQuantityLabel = new Label(2, 0, "Number");
+        deliverySequenceTable.addCell(SequenceQuantityLabel);
+
+        Label SequenceDTLabel = new Label(3, 0, "DeliveryTime");
+        deliverySequenceTable.addCell(SequenceDTLabel);
+
+        deliverySequenceTable.addCell(new Label(4, 0, "RowIndex"));
+
+        assemblySequenceTable.addCell(new Label(0, 0, "CalloffID"));
+        assemblySequenceTable.addCell(new Label(1, 0, "Type"));
+        assemblySequenceTable.addCell(new Label(2, 0, "Number"));
+
+        return workbook;
+    }
+
     private void generateSequenceCalledOff(WritableWorkbook workbook, Calendar deliveryCalendar, int[] remainingQuantities,
                                            int calloffSize, int maxTypeAggregateSize) {
 
+        WritableSheet deliverySequenceTable = workbook.getSheet(DELIVERY_SEQUENCE_TABLE);
+        WritableSheet assemblySequenceTable = workbook.getSheet(ASSEMBLY_SEQUENCE_TABLE);
         Random random = new Random();
 
         int[] tempQts = new int[remainingQuantities.length];
@@ -322,11 +329,6 @@ public class TableGenerator {
         return newArray;
     }
 
-    /**
-     * @param array
-     * @param maxDev
-     * @return
-     */
     public static int[] arrayCopyWithDeviation(int[] array, int[] maxDev) {
         int[] newArray = new int[array.length];
         Random random = new Random();
